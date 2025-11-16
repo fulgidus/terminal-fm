@@ -18,10 +18,12 @@
 ## 🚀 Quick Start
 
 ```bash
-ssh terminal.fm
+ssh terminal-radio.com
 ```
 
 That's it! No installation required. Just SSH and start listening.
+
+> **Note**: Currently in beta. IP access: `ssh 51.91.97.241`
 
 ---
 
@@ -111,38 +113,62 @@ See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed technical documentation
 
 ## 🛠️ Self-Hosting
 
-Want to run your own instance? See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
+Want to run your own instance? **Automated deployment in 5 minutes!**
 
-### Requirements
-- Go 1.21+
-- VPS with SSH access (port 22)
+### ⚡ Quick Deploy (Fully Automated)
+
+```bash
+# 1. SSH into your VPS
+ssh ubuntu@YOUR_VPS_IP
+
+# 2. Run automated setup
+curl -fsSL https://raw.githubusercontent.com/fulgidus/terminal-fm/main/scripts/setup-vps.sh | bash
+
+# 3. Setup GitHub Actions for auto-deploy on push
+# See QUICKSTART.md for detailed instructions
+```
+
+**What you get:**
+- ✅ Complete VPS setup (Go, FFmpeg, dependencies)
+- ✅ Systemd service running on port 22
+- ✅ Admin SSH moved to port 2222
+- ✅ Firewall configured
+- ✅ CI/CD ready with GitHub Actions
+- ✅ Auto-deploy on every push to main
+
+### 📋 Requirements
+- Ubuntu 22.04 VPS (1GB RAM minimum)
+- SSH access
+- GitHub account (for CI/CD)
 - Domain name (optional)
-- ~1GB RAM minimum
 
-### Quick Deploy
+### 📚 Deployment Guides
+- **[QUICKSTART.md](QUICKSTART.md)** - 5-minute automated setup
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Detailed manual deployment
+
+### 🔄 CI/CD Pipeline
+
+Every push to `main` automatically:
+1. Runs tests
+2. Builds binary
+3. Deploys to VPS
+4. Restarts service
+5. Verifies deployment
+
+**See deployment workflow**: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+
+### 🧑‍💻 Development Mode
+
 ```bash
 git clone https://github.com/fulgidus/terminal-fm.git
 cd terminal-fm
 go mod download
-go build -o terminal-fm ./cmd/server
 
-# Development mode (mock data, port 2222)
-./terminal-fm --dev --port 2222
+# Run in dev mode (mock data, no ffplay needed)
+go run ./cmd/server --dev --port 2222
 
-# Production mode (real API, requires ffplay)
-sudo ./terminal-fm --port 22 --host 0.0.0.0
-```
-
-**Note**: Production mode requires `ffplay` (part of FFmpeg) to be installed:
-```bash
-# Ubuntu/Debian
-sudo apt install ffmpeg
-
-# macOS
-brew install ffmpeg
-
-# Arch Linux
-sudo pacman -S ffmpeg
+# Connect in another terminal
+ssh localhost -p 2222
 ```
 
 ## 🤝 Contributing
@@ -181,6 +207,7 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed development guide.
 
 ## 📖 Documentation
 
+- **[Quick Start](QUICKSTART.md)** - 5-minute automated deployment
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
@@ -218,4 +245,4 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 **Made with ❤️ for terminal enthusiasts and radio lovers**
 
-`ssh terminal.fm` and enjoy! 🎵
+`ssh terminal-radio.com` and enjoy! 🎵
