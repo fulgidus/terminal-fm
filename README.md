@@ -28,8 +28,6 @@ Then run:
 radio
 ```
 
-> **Note**: Direct SSH connection will not play audio. Use the `radio` client for full audio playback.
-
 ---
 
 ## ✨ Features
