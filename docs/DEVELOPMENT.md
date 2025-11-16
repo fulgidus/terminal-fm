@@ -646,4 +646,4 @@ For deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 For contributing guidelines, see [../CONTRIBUTING.md](../CONTRIBUTING.md).
 
-For architecture details, see [../ARCHITECTURE.md](../ARCHITECTURE.md).
+For architecture details, see [ARCHITECTURE.md](ARCHITECTURE.md).

@@ -555,4 +555,4 @@ Add:
 
 For development setup, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
-For architecture details, see [../ARCHITECTURE.md](../ARCHITECTURE.md).
+For architecture details, see [ARCHITECTURE.md](ARCHITECTURE.md).

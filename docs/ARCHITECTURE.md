@@ -536,6 +536,6 @@ PRAGMA mmap_size=268435456; -- 256MB
 
 ---
 
-For deployment instructions, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+For deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-For development setup, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+For development setup, see [DEVELOPMENT.md](DEVELOPMENT.md).

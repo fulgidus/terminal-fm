@@ -126,7 +126,8 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed development guide.
 
 ## 📖 Documentation
 
-- [Architecture Overview](ARCHITECTURE.md)
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Contributing Guidelines](CONTRIBUTING.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [API Integration](docs/API.md)
 - [Internationalization](docs/I18N.md)

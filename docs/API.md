@@ -573,6 +573,6 @@ func (c *Client) VoteForStation(uuid string) error {
 
 ---
 
-For architecture details, see [../ARCHITECTURE.md](../ARCHITECTURE.md).
+For architecture details, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 For development setup, see [DEVELOPMENT.md](DEVELOPMENT.md).
