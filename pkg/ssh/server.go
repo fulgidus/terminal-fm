@@ -56,8 +56,8 @@ func NewServer(cfg *config.Config, radioClient radiobrowser.Client, store *stora
 			}
 		}
 
-		// Create a new player for this session
-		audioPlayer := player.NewFFplayPlayer(cfg.Player.FFplayPath)
+		// Create a new remote player for this session that sends commands to the client
+		audioPlayer := player.NewRemotePlayer(sess)
 
 		// Create a new UI model for this session
 		model := ui.NewModel(radioClient, audioPlayer, s.store, locale)
