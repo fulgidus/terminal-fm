@@ -17,13 +17,18 @@
 
 ## 🚀 Quick Start
 
+### Option 1: Install Client (Recommended - Enables Audio)
+
 ```bash
-ssh terminal-radio.com
+curl -fsSL https://terminal-radio.com/install | bash
 ```
 
-That's it! No installation required. Just SSH and start listening.
+Then run:
+```bash
+radio
+```
 
-> **Note**: Currently in beta. IP access: `ssh 51.91.97.241`
+> **Note**: Direct SSH connection will not play audio. Use the `radio` client for full audio playback.
 
 ---
 
@@ -31,7 +36,7 @@ That's it! No installation required. Just SSH and start listening.
 
 ### v1.0 (Current)
 - 🌍 **30,000+ Radio Stations** - Access to Radio Browser community database
-- 🎵 **Audio Playback** - FFplay-based player with volume control
+- 🎵 **Client-Side Audio Playback** - Audio streams directly to your local machine (mpv/ffplay/vlc)
 - 📊 **Station Metadata** - Name, country, bitrate, codec, votes
 - ⭐ **Bookmarks System** - SQLite-backed persistent favorites
 - 🔍 **Interactive Search** - Search by name or country code with live results
@@ -40,6 +45,7 @@ That's it! No installation required. Just SSH and start listening.
 - 🔐 **Anonymous SSH** - No authentication required
 - 💾 **Local Storage** - Bookmarks saved to `~/.terminal-fm/terminal-fm.db`
 - 🎨 **Beautiful UI** - Styled with Lipgloss (cyan/pink/purple theme)
+- 🎧 **One-Command Install** - curl | bash style installation
 
 ### 🚧 Roadmap (v1.5+)
 - 📈 Real-time spectrum analyzer (exploring WebRTC/client-side solutions)
