@@ -24,6 +24,8 @@ const (
 	ViewBookmarks
 	// ViewHelp shows keyboard shortcuts.
 	ViewHelp
+	// ViewAbout shows application info and credits.
+	ViewAbout
 )
 
 // Model holds the application state for the TUI.
@@ -55,8 +57,10 @@ type Model struct {
 	searching          bool
 
 	// Bookmarks
-	bookmarks        []radiobrowser.Station
-	bookmarksLoading bool
+	bookmarks          []radiobrowser.Station
+	bookmarksCursor    int
+	bookmarksScrollOffset int
+	bookmarksLoading   bool
 }
 
 // NewModel creates a new Model with initial state.
@@ -124,23 +128,51 @@ func (m Model) performSearch(query string) tea.Msg {
 		return searchResultsMsg{[]radiobrowser.Station{}}
 	}
 
-	// Try to determine search type
+	// Search by name first (most common use case)
 	params := radiobrowser.SearchParams{
-		Limit: 50,
+		Name:  query,
+		Limit: 100, // Get more results for better filtering
 		Order: "votes",
-	}
-
-	// Simple heuristic: if it's 2 letters, assume country code
-	if len(query) == 2 {
-		params.Country = query
-	} else {
-		// Otherwise search by name
-		params.Name = query
 	}
 
 	stations, err := m.radioClient.Search(params)
 	if err != nil {
 		return errMsg{err}
+	}
+
+	// If we got results, return them
+	if len(stations) > 0 {
+		// Limit to 50 best results
+		if len(stations) > 50 {
+			stations = stations[:50]
+		}
+		return searchResultsMsg{stations}
+	}
+
+	// No results by name, try by country
+	params = radiobrowser.SearchParams{
+		Country: query,
+		Limit:   50,
+		Order:   "votes",
+	}
+
+	stations, err = m.radioClient.Search(params)
+	if err != nil {
+		return errMsg{err}
+	}
+
+	// If still no results, try by tag
+	if len(stations) == 0 {
+		params = radiobrowser.SearchParams{
+			Tag:   query,
+			Limit: 50,
+			Order: "votes",
+		}
+
+		stations, err = m.radioClient.Search(params)
+		if err != nil {
+			return errMsg{err}
+		}
 	}
 
 	return searchResultsMsg{stations}

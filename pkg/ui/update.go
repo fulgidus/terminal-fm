@@ -32,6 +32,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case bookmarksLoadedMsg:
 		m.bookmarks = msg.bookmarks
 		m.bookmarksLoading = false
+		// Reset cursor if it's out of bounds
+		if m.bookmarksCursor >= len(m.bookmarks) {
+			m.bookmarksCursor = 0
+			m.bookmarksScrollOffset = 0
+		}
 		return m, nil
 
 	// Bookmark added
@@ -95,6 +100,8 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleBookmarksKeys(msg)
 	case ViewHelp:
 		return m.handleHelpKeys(msg)
+	case ViewAbout:
+		return m.handleAboutKeys(msg)
 	}
 
 	return m, nil
@@ -229,7 +236,8 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Load bookmarks when switching to bookmarks view
 		return m, m.loadBookmarks
 
-	case "/":
+	case "f", "/":
+		// 'f' for find (international keyboard friendly), '/' still works
 		m.view = ViewSearch
 		m.searchInput.Focus()
 		m.searchInput.SetValue("")
@@ -237,8 +245,14 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.errorMsg = ""
 		return m, textinput.Blink
 
-	case "?":
+	case "h", "?":
+		// 'h' for help (international keyboard friendly), '?' still works
 		m.view = ViewHelp
+		return m, nil
+	
+	case "i":
+		// Info/About view
+		m.view = ViewAbout
 		return m, nil
 	}
 
@@ -249,15 +263,14 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 func (m Model) handleSearchKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
-	switch msg.String() {
-	case "esc":
-		m.searchInput.Blur()
-		m.view = ViewBrowse
-		return m, nil
-
-	case "enter":
-		// Execute search or play selected result
-		if m.searchInput.Focused() {
+	// Handle text input first if focused (except for special keys)
+	if m.searchInput.Focused() {
+		switch msg.String() {
+		case "esc":
+			m.searchInput.Blur()
+			m.view = ViewBrowse
+			return m, nil
+		case "enter":
 			// Execute search
 			query := m.searchInput.Value()
 			if query != "" {
@@ -267,8 +280,27 @@ func (m Model) handleSearchKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 					return m.performSearch(query)
 				}
 			}
-		} else if len(m.searchResults) > 0 {
-			// Play selected station from results
+			return m, nil
+		case "tab":
+			// Switch focus to results
+			m.searchInput.Blur()
+			return m, nil
+		default:
+			// Pass all other keys to the text input
+			m.searchInput, cmd = m.searchInput.Update(msg)
+			return m, cmd
+		}
+	}
+
+	// Handle navigation and commands when input is NOT focused
+	switch msg.String() {
+	case "esc":
+		m.view = ViewBrowse
+		return m, nil
+
+	case "enter":
+		// Play selected station from results
+		if len(m.searchResults) > 0 {
 			station := &m.searchResults[m.searchCursor]
 			if err := m.player.Play(station); err != nil {
 				m.errorMsg = fmt.Sprintf("Failed to play: %v", err)
@@ -279,33 +311,78 @@ func (m Model) handleSearchKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case "tab":
-		// Toggle focus between input and results
-		if m.searchInput.Focused() {
-			m.searchInput.Blur()
-		} else {
-			m.searchInput.Focus()
-			cmd = textinput.Blink
-		}
+		// Switch focus back to input
+		m.searchInput.Focus()
+		cmd = textinput.Blink
 		return m, cmd
 
 	case "up", "k":
-		if !m.searchInput.Focused() && m.searchCursor > 0 {
+		if m.searchCursor > 0 {
 			m.searchCursor--
 			m.updateSearchScroll()
 		}
 		return m, nil
 
 	case "down", "j":
-		if !m.searchInput.Focused() && m.searchCursor < len(m.searchResults)-1 {
+		if m.searchCursor < len(m.searchResults)-1 {
 			m.searchCursor++
 			m.updateSearchScroll()
 		}
 		return m, nil
-	}
-
-	// Handle text input
-	if m.searchInput.Focused() {
-		m.searchInput, cmd = m.searchInput.Update(msg)
+	
+	case "s":
+		// Stop playback
+		m.player.Stop()
+		m.errorMsg = ""
+		return m, nil
+	
+	case "=", "+":
+		// Increase volume
+		currentVol := m.player.GetVolume()
+		if currentVol < 100 {
+			m.player.SetVolume(currentVol + 10)
+		}
+		return m, nil
+	
+	case "-", "_":
+		// Decrease volume
+		currentVol := m.player.GetVolume()
+		if currentVol > 0 {
+			m.player.SetVolume(currentVol - 10)
+		}
+		return m, nil
+	
+	case "a":
+		// Add/remove bookmark for selected result
+		if len(m.searchResults) > 0 && m.store != nil {
+			station := &m.searchResults[m.searchCursor]
+			
+			// Check if already bookmarked
+			isBookmarked, err := m.store.IsBookmarked(station.StationUUID)
+			if err != nil {
+				m.errorMsg = fmt.Sprintf("Error checking bookmark: %v", err)
+				return m, nil
+			}
+			
+			if isBookmarked {
+				// Remove bookmark
+				return m, func() tea.Msg {
+					if err := m.store.RemoveBookmark(station.StationUUID); err != nil {
+						return errMsg{err}
+					}
+					return bookmarkRemovedMsg{station.StationUUID}
+				}
+			} else {
+				// Add bookmark
+				return m, func() tea.Msg {
+					if err := m.store.AddBookmark(station); err != nil {
+						return errMsg{err}
+					}
+					return bookmarkAddedMsg{*station}
+				}
+			}
+		}
+		return m, nil
 	}
 
 	return m, cmd
@@ -332,18 +409,149 @@ func (m Model) handleBookmarksKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "esc", "b":
 		m.view = ViewBrowse
 		return m, nil
-
-		// TODO: Implement bookmark navigation in Week 2
+	
+	// Navigation
+	case "up", "k":
+		if m.bookmarksCursor > 0 {
+			m.bookmarksCursor--
+			m.updateBookmarksScroll()
+		}
+		return m, nil
+	
+	case "down", "j":
+		if m.bookmarksCursor < len(m.bookmarks)-1 {
+			m.bookmarksCursor++
+			m.updateBookmarksScroll()
+		}
+		return m, nil
+	
+	case "pgup":
+		visible := m.VisibleStations()
+		m.bookmarksCursor -= visible
+		if m.bookmarksCursor < 0 {
+			m.bookmarksCursor = 0
+		}
+		m.updateBookmarksScroll()
+		return m, nil
+	
+	case "pgdown":
+		visible := m.VisibleStations()
+		m.bookmarksCursor += visible
+		if m.bookmarksCursor >= len(m.bookmarks) {
+			m.bookmarksCursor = len(m.bookmarks) - 1
+		}
+		m.updateBookmarksScroll()
+		return m, nil
+	
+	case "home", "g":
+		m.bookmarksCursor = 0
+		m.updateBookmarksScroll()
+		return m, nil
+	
+	case "end", "G":
+		if len(m.bookmarks) > 0 {
+			m.bookmarksCursor = len(m.bookmarks) - 1
+		}
+		m.updateBookmarksScroll()
+		return m, nil
+	
+	// Actions
+	case "enter", " ":
+		// Play selected bookmark
+		if len(m.bookmarks) > 0 && m.bookmarksCursor < len(m.bookmarks) {
+			station := &m.bookmarks[m.bookmarksCursor]
+			currentStation := m.player.GetCurrentStation()
+			if currentStation != nil && currentStation.StationUUID == station.StationUUID {
+				// Stop if already playing this station
+				m.player.Stop()
+			} else {
+				// Play the selected station
+				if err := m.player.Play(station); err != nil {
+					m.errorMsg = fmt.Sprintf("Failed to play: %v", err)
+				} else {
+					m.errorMsg = ""
+				}
+			}
+		}
+		return m, nil
+	
+	case "s":
+		// Stop playback
+		m.player.Stop()
+		m.errorMsg = ""
+		return m, nil
+	
+	case "=", "+":
+		// Increase volume
+		currentVol := m.player.GetVolume()
+		if currentVol < 100 {
+			m.player.SetVolume(currentVol + 10)
+		}
+		return m, nil
+	
+	case "-", "_":
+		// Decrease volume
+		currentVol := m.player.GetVolume()
+		if currentVol > 0 {
+			m.player.SetVolume(currentVol - 10)
+		}
+		return m, nil
+	
+	case "a", "d":
+		// Remove bookmark (a for add/remove toggle, d for delete)
+		if len(m.bookmarks) > 0 && m.bookmarksCursor < len(m.bookmarks) && m.store != nil {
+			station := &m.bookmarks[m.bookmarksCursor]
+			
+			return m, func() tea.Msg {
+				if err := m.store.RemoveBookmark(station.StationUUID); err != nil {
+					return errMsg{err}
+				}
+				return bookmarkRemovedMsg{station.StationUUID}
+			}
+		}
+		return m, nil
 	}
-
+	
 	return m, nil
+}
+
+// updateBookmarksScroll adjusts bookmarks scroll offset based on cursor position.
+func (m *Model) updateBookmarksScroll() {
+	visible := m.VisibleStations()
+	
+	// Scroll down if cursor is below visible area
+	if m.bookmarksCursor >= m.bookmarksScrollOffset+visible {
+		m.bookmarksScrollOffset = m.bookmarksCursor - visible + 1
+	}
+	
+	// Scroll up if cursor is above visible area
+	if m.bookmarksCursor < m.bookmarksScrollOffset {
+		m.bookmarksScrollOffset = m.bookmarksCursor
+	}
 }
 
 // handleHelpKeys handles keyboard input in the help view.
 func (m Model) handleHelpKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
-	case "esc", "?":
+	case "esc", "h", "?":
 		m.view = ViewBrowse
+		return m, nil
+	case "i":
+		m.view = ViewAbout
+		return m, nil
+	}
+
+	return m, nil
+}
+
+// handleAboutKeys handles keyboard input in the about view.
+func (m Model) handleAboutKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc", "i":
+		m.view = ViewBrowse
+		return m, nil
+	case "h", "?":
+		m.view = ViewHelp
 		return m, nil
 	}
 

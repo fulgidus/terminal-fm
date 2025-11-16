@@ -118,6 +118,8 @@ func (m Model) View() string {
 		return m.viewBookmarks()
 	case ViewHelp:
 		return m.viewHelp()
+	case ViewAbout:
+		return m.viewAbout()
 	default:
 		return "Unknown view"
 	}
@@ -217,8 +219,9 @@ func (m Model) renderFooter() string {
 		"s stop",
 		"+/- vol",
 		"b bookmarks",
-		"/ search",
-		"? help",
+		"f find",
+		"h help",
+		"i about",
 		"q quit",
 	}
 
@@ -243,7 +246,7 @@ func (m Model) viewSearch() string {
 	b.WriteString("\n")
 	b.WriteString(m.searchInput.View())
 	b.WriteString("\n")
-	b.WriteString(styleStationDetail.Render("Tip: Enter 2 letters for country code (e.g., 'IT', 'US'), or station name"))
+	b.WriteString(styleStationDetail.Render("Tip: Search by name, country (e.g., 'Italy', 'US'), or genre tag"))
 	b.WriteString("\n\n")
 
 	// Show searching status
@@ -287,7 +290,7 @@ func (m Model) viewSearch() string {
 
 	// Footer
 	b.WriteString("\n")
-	shortcuts := "enter search/play • tab switch focus • ↑/↓ navigate • esc back"
+	shortcuts := "enter search/play • tab switch • ↑/↓ nav • s stop • +/- vol • a bookmark • h help • i about • esc back"
 	b.WriteString(styleFooter.Width(m.width).Render(shortcuts))
 
 	return b.String()
@@ -316,18 +319,23 @@ func (m Model) viewBookmarks() string {
 		b.WriteString(styleHeader.Render(fmt.Sprintf("%d bookmarked stations", len(m.bookmarks))))
 		b.WriteString("\n\n")
 
-		// Render bookmark list (similar to station list)
-		for i, station := range m.bookmarks {
-			if i >= m.VisibleStations() {
-				break
-			}
-			b.WriteString(m.renderStation(station, false))
+		// Render bookmark list with scrolling
+		visible := m.VisibleStations()
+		end := m.bookmarksScrollOffset + visible
+		if end > len(m.bookmarks) {
+			end = len(m.bookmarks)
+		}
+		
+		for i := m.bookmarksScrollOffset; i < end; i++ {
+			station := m.bookmarks[i]
+			isSelected := i == m.bookmarksCursor
+			b.WriteString(m.renderStation(station, isSelected))
 			b.WriteString("\n")
 		}
 	}
 
 	b.WriteString("\n")
-	shortcuts := "enter play • a remove • esc back"
+	shortcuts := "↑/↓ navigate • enter play • s stop • +/- vol • a/d remove • h help • i about • esc back"
 	b.WriteString(styleFooter.Width(m.width).Render(shortcuts))
 
 	return b.String()
@@ -381,8 +389,9 @@ func (m Model) viewHelp() string {
 		{"+ / -", "Volume up/down"},
 		{"a", "Add/Remove bookmark"},
 		{"b", "Toggle bookmarks view"},
-		{"/", "Search stations"},
-		{"?", "Show this help"},
+		{"f", "Find/Search stations"},
+		{"h", "Show this help"},
+		{"i", "About Terminal.FM"},
 		{"q / Ctrl+C", "Quit application"},
 	}
 
@@ -393,7 +402,124 @@ func (m Model) viewHelp() string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(styleFooter.Render("Press ESC to go back"))
+	b.WriteString(styleFooter.Render("esc back • i about"))
+
+	return b.String()
+}
+
+// viewAbout renders the about screen with credits and info.
+func (m Model) viewAbout() string {
+	var b strings.Builder
+
+	// Title
+	b.WriteString(styleTitle.Render("♫ About Terminal.FM"))
+	b.WriteString("\n\n")
+
+	// Version and description
+	version := lipgloss.NewStyle().
+		Foreground(colorPrimary).
+		Bold(true).
+		Render("Version 1.0.0")
+	b.WriteString("  " + version)
+	b.WriteString("\n\n")
+
+	description := lipgloss.NewStyle().
+		Foreground(colorText).
+		Render("Internet Radio Player for Your Terminal")
+	b.WriteString("  " + description)
+	b.WriteString("\n\n")
+
+	// Separator
+	separator := lipgloss.NewStyle().
+		Foreground(colorBorder).
+		Render(strings.Repeat("─", 50))
+	b.WriteString("  " + separator)
+	b.WriteString("\n\n")
+
+	// Features
+	featuresTitle := lipgloss.NewStyle().
+		Foreground(colorAccent).
+		Bold(true).
+		Render("Features:")
+	b.WriteString("  " + featuresTitle)
+	b.WriteString("\n\n")
+
+	features := []string{
+		"• 30,000+ radio stations worldwide",
+		"• Search by name, country, or genre",
+		"• Bookmark your favorite stations",
+		"• Real-time volume control",
+		"• Multi-language support (EN/IT)",
+		"• Clean TUI interface with Vim keybindings",
+	}
+
+	for _, feature := range features {
+		featureText := lipgloss.NewStyle().Foreground(colorText).Render(feature)
+		b.WriteString("  " + featureText + "\n")
+	}
+	b.WriteString("\n")
+
+	// Credits
+	creditsTitle := lipgloss.NewStyle().
+		Foreground(colorAccent).
+		Bold(true).
+		Render("Created by:")
+	b.WriteString("  " + creditsTitle)
+	b.WriteString("\n\n")
+
+	author := lipgloss.NewStyle().
+		Foreground(colorSuccess).
+		Bold(true).
+		Render("Fulgidus")
+	b.WriteString("  " + author)
+	b.WriteString("\n\n")
+
+	// GitHub link
+	githubLabel := lipgloss.NewStyle().
+		Foreground(colorTextDim).
+		Render("GitHub: ")
+	githubLink := lipgloss.NewStyle().
+		Foreground(colorPrimary).
+		Underline(true).
+		Render("https://github.com/fulgidus/terminal-fm")
+	b.WriteString("  " + githubLabel + githubLink)
+	b.WriteString("\n\n")
+
+	// Tech stack
+	b.WriteString("  " + separator)
+	b.WriteString("\n\n")
+
+	techTitle := lipgloss.NewStyle().
+		Foreground(colorAccent).
+		Bold(true).
+		Render("Built with:")
+	b.WriteString("  " + techTitle)
+	b.WriteString("\n\n")
+
+	tech := []string{
+		"• Go 1.21+ - Programming language",
+		"• Charm Wish - SSH server framework",
+		"• Bubbletea - Terminal UI framework",
+		"• FFplay - Audio streaming",
+		"• SQLite - Local storage",
+		"• Radio Browser API - Station database",
+	}
+
+	for _, t := range tech {
+		techText := lipgloss.NewStyle().Foreground(colorTextDim).Render(t)
+		b.WriteString("  " + techText + "\n")
+	}
+	b.WriteString("\n")
+
+	// Footer
+	footer := lipgloss.NewStyle().
+		Foreground(colorSuccess).
+		Italic(true).
+		Render("Made with ♥ for the open source community")
+	b.WriteString("  " + footer)
+	b.WriteString("\n\n")
+
+	b.WriteString(styleFooter.Render("esc back • h help"))
 
 	return b.String()
 }

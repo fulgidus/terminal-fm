@@ -24,7 +24,7 @@
   "search.title": "Search Stations",
   "search.prompt": "Enter search query:",
   "search.placeholder": "Search stations by name, country, or tag...",
-  "search.hint": "Tip: Enter 2 letters for country code (e.g., 'IT', 'US'), or station name",
+  "search.hint": "Tip: Search by name, country (e.g., 'Italy', 'US'), or genre tag",
   "search.searching": "Searching...",
   "search.results": "Found %d stations (Tab to navigate results)",
   

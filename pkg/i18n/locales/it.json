@@ -24,7 +24,7 @@
   "search.title": "Cerca Stazioni",
   "search.prompt": "Inserisci query di ricerca:",
   "search.placeholder": "Cerca stazioni per nome, paese o tag...",
-  "search.hint": "Suggerimento: Inserisci 2 lettere per il codice paese (es. 'IT', 'US'), o il nome della stazione",
+  "search.hint": "Suggerimento: Cerca per nome, paese (es. 'Italia', 'US'), o genere musicale",
   "search.searching": "Ricerca in corso...",
   "search.results": "Trovate %d stazioni (Tab per navigare i risultati)",
   
