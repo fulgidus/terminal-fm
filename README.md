@@ -83,7 +83,7 @@ User Terminal → SSH (terminal.fm) → TUI + Metadata
 - **API**: Radio Browser Community API
 - **Storage**: SQLite (user preferences)
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed technical documentation.
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed technical documentation.
 
 ## 🛠️ Self-Hosting
 
@@ -126,7 +126,8 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed development guide.
 
 ## 📖 Documentation
 
-- [Architecture Overview](ARCHITECTURE.md)
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Contributing Guidelines](CONTRIBUTING.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [API Integration](docs/API.md)
 - [Internationalization](docs/I18N.md)
