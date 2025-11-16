@@ -133,7 +133,7 @@ func (p *StreamingPlayer) stopLocked() error {
 		// Send SIGTERM first (graceful)
 		if err := p.cmd.Process.Signal(syscall.SIGTERM); err != nil {
 			// If SIGTERM fails, try SIGKILL
-			p.cmd.Process.Signal(syscall.SIGKILL)
+			_ = p.cmd.Process.Signal(syscall.SIGKILL)
 		}
 	}
 
@@ -197,7 +197,7 @@ func (p *StreamingPlayer) Cleanup() error {
 	defer p.mu.Unlock()
 
 	if p.cmd != nil && p.cmd.Process != nil {
-		p.cmd.Process.Signal(syscall.SIGKILL)
+		_ = p.cmd.Process.Signal(syscall.SIGKILL)
 	}
 
 	p.cmd = nil

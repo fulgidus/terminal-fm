@@ -205,8 +205,11 @@ func playAudio(url, volume string) {
 // stopAudio stops the current player
 func stopAudio() {
 	if playerCmd != nil && playerCmd.Process != nil {
-		playerCmd.Process.Signal(syscall.SIGTERM)
-		playerCmd.Wait()
+		if err := playerCmd.Process.Signal(syscall.SIGTERM); err != nil {
+			// Process might already be dead, try SIGKILL
+			_ = playerCmd.Process.Kill()
+		}
+		_ = playerCmd.Wait() // Ignore wait errors
 		playerCmd = nil
 	}
 }

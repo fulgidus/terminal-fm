@@ -164,7 +164,7 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			currentStation := m.player.GetCurrentStation()
 			if currentStation != nil && currentStation.StationUUID == station.StationUUID {
 				// Stop if already playing this station
-				m.player.Stop()
+				_ = m.player.Stop()
 			} else {
 				// Play the selected station
 				if err := m.player.Play(station); err != nil {
@@ -178,7 +178,7 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case "s":
 		// Stop playback
-		m.player.Stop()
+		_ = m.player.Stop()
 		m.errorMsg = ""
 		return m, nil
 
@@ -186,7 +186,7 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Increase volume
 		currentVol := m.player.GetVolume()
 		if currentVol < 100 {
-			m.player.SetVolume(currentVol + 10)
+			_ = m.player.SetVolume(currentVol + 10)
 		}
 		return m, nil
 
@@ -194,7 +194,7 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Decrease volume
 		currentVol := m.player.GetVolume()
 		if currentVol > 0 {
-			m.player.SetVolume(currentVol - 10)
+			_ = m.player.SetVolume(currentVol - 10)
 		}
 		return m, nil
 
@@ -249,7 +249,7 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// 'h' for help (international keyboard friendly), '?' still works
 		m.view = ViewHelp
 		return m, nil
-	
+
 	case "i":
 		// Info/About view
 		m.view = ViewAbout
@@ -329,41 +329,41 @@ func (m Model) handleSearchKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.updateSearchScroll()
 		}
 		return m, nil
-	
+
 	case "s":
 		// Stop playback
-		m.player.Stop()
+		_ = m.player.Stop()
 		m.errorMsg = ""
 		return m, nil
-	
+
 	case "=", "+":
 		// Increase volume
 		currentVol := m.player.GetVolume()
 		if currentVol < 100 {
-			m.player.SetVolume(currentVol + 10)
+			_ = m.player.SetVolume(currentVol + 10)
 		}
 		return m, nil
-	
+
 	case "-", "_":
 		// Decrease volume
 		currentVol := m.player.GetVolume()
 		if currentVol > 0 {
-			m.player.SetVolume(currentVol - 10)
+			_ = m.player.SetVolume(currentVol - 10)
 		}
 		return m, nil
-	
+
 	case "a":
 		// Add/remove bookmark for selected result
 		if len(m.searchResults) > 0 && m.store != nil {
 			station := &m.searchResults[m.searchCursor]
-			
+
 			// Check if already bookmarked
 			isBookmarked, err := m.store.IsBookmarked(station.StationUUID)
 			if err != nil {
 				m.errorMsg = fmt.Sprintf("Error checking bookmark: %v", err)
 				return m, nil
 			}
-			
+
 			if isBookmarked {
 				// Remove bookmark
 				return m, func() tea.Msg {
@@ -409,7 +409,7 @@ func (m Model) handleBookmarksKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "esc", "b":
 		m.view = ViewBrowse
 		return m, nil
-	
+
 	// Navigation
 	case "up", "k":
 		if m.bookmarksCursor > 0 {
@@ -417,14 +417,14 @@ func (m Model) handleBookmarksKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.updateBookmarksScroll()
 		}
 		return m, nil
-	
+
 	case "down", "j":
 		if m.bookmarksCursor < len(m.bookmarks)-1 {
 			m.bookmarksCursor++
 			m.updateBookmarksScroll()
 		}
 		return m, nil
-	
+
 	case "pgup":
 		visible := m.VisibleStations()
 		m.bookmarksCursor -= visible
@@ -433,7 +433,7 @@ func (m Model) handleBookmarksKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		m.updateBookmarksScroll()
 		return m, nil
-	
+
 	case "pgdown":
 		visible := m.VisibleStations()
 		m.bookmarksCursor += visible
@@ -442,19 +442,19 @@ func (m Model) handleBookmarksKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		m.updateBookmarksScroll()
 		return m, nil
-	
+
 	case "home", "g":
 		m.bookmarksCursor = 0
 		m.updateBookmarksScroll()
 		return m, nil
-	
+
 	case "end", "G":
 		if len(m.bookmarks) > 0 {
 			m.bookmarksCursor = len(m.bookmarks) - 1
 		}
 		m.updateBookmarksScroll()
 		return m, nil
-	
+
 	// Actions
 	case "enter", " ":
 		// Play selected bookmark
@@ -463,7 +463,7 @@ func (m Model) handleBookmarksKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			currentStation := m.player.GetCurrentStation()
 			if currentStation != nil && currentStation.StationUUID == station.StationUUID {
 				// Stop if already playing this station
-				m.player.Stop()
+				_ = m.player.Stop()
 			} else {
 				// Play the selected station
 				if err := m.player.Play(station); err != nil {
@@ -474,34 +474,34 @@ func (m Model) handleBookmarksKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 		}
 		return m, nil
-	
+
 	case "s":
 		// Stop playback
-		m.player.Stop()
+		_ = m.player.Stop()
 		m.errorMsg = ""
 		return m, nil
-	
+
 	case "=", "+":
 		// Increase volume
 		currentVol := m.player.GetVolume()
 		if currentVol < 100 {
-			m.player.SetVolume(currentVol + 10)
+			_ = m.player.SetVolume(currentVol + 10)
 		}
 		return m, nil
-	
+
 	case "-", "_":
 		// Decrease volume
 		currentVol := m.player.GetVolume()
 		if currentVol > 0 {
-			m.player.SetVolume(currentVol - 10)
+			_ = m.player.SetVolume(currentVol - 10)
 		}
 		return m, nil
-	
+
 	case "a", "d":
 		// Remove bookmark (a for add/remove toggle, d for delete)
 		if len(m.bookmarks) > 0 && m.bookmarksCursor < len(m.bookmarks) && m.store != nil {
 			station := &m.bookmarks[m.bookmarksCursor]
-			
+
 			return m, func() tea.Msg {
 				if err := m.store.RemoveBookmark(station.StationUUID); err != nil {
 					return errMsg{err}
@@ -511,19 +511,19 @@ func (m Model) handleBookmarksKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	}
-	
+
 	return m, nil
 }
 
 // updateBookmarksScroll adjusts bookmarks scroll offset based on cursor position.
 func (m *Model) updateBookmarksScroll() {
 	visible := m.VisibleStations()
-	
+
 	// Scroll down if cursor is below visible area
 	if m.bookmarksCursor >= m.bookmarksScrollOffset+visible {
 		m.bookmarksScrollOffset = m.bookmarksCursor - visible + 1
 	}
-	
+
 	// Scroll up if cursor is above visible area
 	if m.bookmarksCursor < m.bookmarksScrollOffset {
 		m.bookmarksScrollOffset = m.bookmarksCursor

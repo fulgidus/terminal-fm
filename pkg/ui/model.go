@@ -57,10 +57,10 @@ type Model struct {
 	searching          bool
 
 	// Bookmarks
-	bookmarks          []radiobrowser.Station
-	bookmarksCursor    int
+	bookmarks             []radiobrowser.Station
+	bookmarksCursor       int
 	bookmarksScrollOffset int
-	bookmarksLoading   bool
+	bookmarksLoading      bool
 }
 
 // NewModel creates a new Model with initial state.
@@ -220,12 +220,12 @@ func (m Model) VisibleStations() int {
 	// - Spacing after list (1 line)
 	// - Footer with border (2 lines)
 	reserved := 10
-	
+
 	// Add extra line for error message if present
 	if m.errorMsg != "" {
 		reserved += 1
 	}
-	
+
 	visible := m.height - reserved
 	if visible < 1 {
 		visible = 1
@@ -285,10 +285,10 @@ func (m Model) VisibleStationList() []radiobrowser.Station {
 // Cleanup stops playback and cleans up resources.
 func (m *Model) Cleanup() {
 	if m.player != nil {
-		m.player.Stop()
+		_ = m.player.Stop()
 		// If player implements Cleanup interface, call it
 		if cleaner, ok := m.player.(interface{ Cleanup() error }); ok {
-			cleaner.Cleanup()
+			_ = cleaner.Cleanup()
 		}
 	}
 }

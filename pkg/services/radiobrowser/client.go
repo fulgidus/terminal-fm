@@ -117,11 +117,8 @@ func (c *MockClient) Search(params SearchParams) ([]Station, error) {
 
 	// Simple filtering by name if provided
 	if params.Name != "" {
-		filtered := []Station{}
-		for _, station := range mockStations {
-			// Case-insensitive search would go here
-			filtered = append(filtered, station)
-		}
+		// Case-insensitive search would go here - for now return all
+		filtered := append([]Station{}, mockStations...)
 		return filtered, nil
 	}
 

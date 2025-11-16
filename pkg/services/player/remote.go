@@ -47,8 +47,8 @@ func (p *RemotePlayer) Play(station *radiobrowser.Station) error {
 		return fmt.Errorf("no output writer configured")
 	}
 
-	// Stop any current playback first
-	p.sendCommand("STOP")
+	// Stop any current playback first (ignore errors)
+	_ = p.sendCommand("STOP")
 
 	// Send PLAY command with URL and volume
 	cmd := fmt.Sprintf("PLAY;%s;%d", station.URLResolved, p.volume)

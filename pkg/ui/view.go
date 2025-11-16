@@ -12,9 +12,8 @@ import (
 // Color scheme using Lipgloss.
 var (
 	// Brand colors
-	colorPrimary   = lipgloss.Color("#00D9FF") // Cyan
-	colorSecondary = lipgloss.Color("#FF6B9D") // Pink
-	colorAccent    = lipgloss.Color("#C792EA") // Purple
+	colorPrimary = lipgloss.Color("#00D9FF") // Cyan
+	colorAccent  = lipgloss.Color("#C792EA") // Purple
 
 	// UI colors
 	colorText     = lipgloss.Color("#E0E0E0") // Light gray
@@ -235,7 +234,7 @@ func (m Model) viewSearch() string {
 
 	b.WriteString(styleTitle.Render("♫ Search Stations"))
 	b.WriteString("\n")
-	
+
 	// Status bar
 	b.WriteString(m.renderStatusBar())
 	b.WriteString("\n\n")
@@ -302,7 +301,7 @@ func (m Model) viewBookmarks() string {
 
 	b.WriteString(styleTitle.Render("♫ Bookmarks"))
 	b.WriteString("\n")
-	
+
 	// Status bar
 	b.WriteString(m.renderStatusBar())
 	b.WriteString("\n\n")
@@ -325,7 +324,7 @@ func (m Model) viewBookmarks() string {
 		if end > len(m.bookmarks) {
 			end = len(m.bookmarks)
 		}
-		
+
 		for i := m.bookmarksScrollOffset; i < end; i++ {
 			station := m.bookmarks[i]
 			isSelected := i == m.bookmarksCursor

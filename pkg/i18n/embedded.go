@@ -5,8 +5,6 @@ import "fmt"
 
 // GetEmbeddedTranslations returns embedded translations for a locale.
 func GetEmbeddedTranslations(locale string) map[string]string {
-	translations := make(map[string]string)
-
 	// English translations (fallback)
 	en := map[string]string{
 		"app.title":          "Terminal.FM",
@@ -99,14 +97,10 @@ func GetEmbeddedTranslations(locale string) map[string]string {
 		"footer.back":        "invio riproduci • a rimuovi • esc indietro",
 	}
 
-	switch locale {
-	case "it":
-		translations = it
-	default:
-		translations = en
+	if locale == "it" {
+		return it
 	}
-
-	return translations
+	return en
 }
 
 // SimpleTranslator provides simple translation without file loading.

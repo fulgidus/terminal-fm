@@ -95,7 +95,6 @@ jobs:
         if: success()
         run: |
           echo "✅ Deployment successful!"
-          echo "🎵 Terminal-Radio is live at: ssh terminal-radio.com"
 
       - name: Notify deployment failure
         if: failure()
