@@ -1,10 +1,3 @@
-# Terminal.FM 📻
-
-> A TUI (Text User Interface) radio player accessible via SSH
-
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
-[![Built with Bubbletea](https://img.shields.io/badge/Built%20with-Bubbletea-pink)](https://github.com/charmbracelet/bubbletea)
 
 ```
  _____ _____ ____  __  __ ___ _   _    _    _       _____ __  __ 
@@ -13,8 +6,14 @@
   | | | |___|  _ <| |  | || || |\  |/ ___ \| |___  |  _| | |  | |
   |_| |_____|_| \_\_|  |_|___|_| \_/_/   \_\_____| |_|   |_|  |_|
                                                                    
-        Listen to 30,000+ radio stations from your terminal
+      Listen to 30,000+ radio stations from your terminal
 ```
+> A TUI (Text User Interface) radio player accessible via SSH
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
+[![Built with Bubbletea](https://img.shields.io/badge/Built%20with-Bubbletea-pink)](https://github.com/charmbracelet/bubbletea)
+
 
 ## 🚀 Quick Start
 
