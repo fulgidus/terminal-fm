@@ -105,7 +105,7 @@ func (p *FFplayPlayer) Play(station *radiobrowser.Station) error {
 	// Monitor process in background
 	cmd := p.cmd // Capture cmd for goroutine
 	go func() {
-		cmd.Wait()
+		_ = cmd.Wait() // Ignore wait errors in goroutine
 
 		// Cleanup after process exits
 		p.mu.Lock()
@@ -142,7 +142,7 @@ func (p *FFplayPlayer) stopLocked() error {
 		// Send SIGTERM first (graceful)
 		if err := p.cmd.Process.Signal(syscall.SIGTERM); err != nil {
 			// If SIGTERM fails, try SIGKILL
-			p.cmd.Process.Signal(syscall.SIGKILL)
+			_ = p.cmd.Process.Signal(syscall.SIGKILL)
 		}
 		// Don't wait here - the goroutine will handle cleanup
 	}
@@ -211,7 +211,7 @@ func (p *FFplayPlayer) Cleanup() error {
 
 	if p.cmd != nil && p.cmd.Process != nil {
 		// Force kill the process
-		p.cmd.Process.Signal(syscall.SIGKILL)
+		_ = p.cmd.Process.Signal(syscall.SIGKILL)
 	}
 
 	p.cmd = nil
