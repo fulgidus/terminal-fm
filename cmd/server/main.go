@@ -9,6 +9,7 @@ import (
 
 	"github.com/fulgidus/terminal-fm/internal/config"
 	"github.com/fulgidus/terminal-fm/pkg/services/radiobrowser"
+	"github.com/fulgidus/terminal-fm/pkg/services/storage"
 	sshserver "github.com/fulgidus/terminal-fm/pkg/ssh"
 )
 
@@ -61,12 +62,32 @@ func main() {
 		log.Fatalf("Failed to create data directory: %v", err)
 	}
 
-	// Initialize radio browser client (using mock for now)
-	radioClient := radiobrowser.NewMockClient()
-	log.Println("Using mock Radio Browser API client")
+	// Initialize radio browser client
+	var radioClient radiobrowser.Client
+	if *devMode {
+		// Use mock in dev mode for faster testing
+		radioClient = radiobrowser.NewMockClient()
+		log.Println("Using mock Radio Browser API client")
+	} else {
+		// Use real API in production
+		apiClient, err := radiobrowser.NewAPIClient()
+		if err != nil {
+			log.Fatalf("Failed to create Radio Browser API client: %v", err)
+		}
+		radioClient = apiClient
+		log.Println("Using Radio Browser API client")
+	}
+
+	// Initialize storage
+	store, err := storage.NewStore(cfg.Storage.DBPath)
+	if err != nil {
+		log.Fatalf("Failed to initialize storage: %v", err)
+	}
+	defer store.Close()
+	log.Printf("Database initialized at %s", cfg.Storage.DBPath)
 
 	// Create SSH server
-	srv, err := sshserver.NewServer(cfg, radioClient)
+	srv, err := sshserver.NewServer(cfg, radioClient, store)
 	if err != nil {
 		log.Fatalf("Failed to create SSH server: %v", err)
 	}

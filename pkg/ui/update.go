@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+	
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -24,9 +26,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	
+	// Bookmarks loaded successfully
+	case bookmarksLoadedMsg:
+		m.bookmarks = msg.bookmarks
+		m.bookmarksLoading = false
+		return m, nil
+	
+	// Bookmark added
+	case bookmarkAddedMsg:
+		m.errorMsg = fmt.Sprintf("Added '%s' to bookmarks", msg.station.Name)
+		// Reload bookmarks
+		return m, m.loadBookmarks
+	
+	// Bookmark removed
+	case bookmarkRemovedMsg:
+		m.errorMsg = "Removed from bookmarks"
+		// Reload bookmarks
+		return m, m.loadBookmarks
+	
 	// Error occurred
 	case errMsg:
 		m.loading = false
+		m.bookmarksLoading = false
 		m.errorMsg = msg.Error()
 		return m, nil
 	
@@ -110,23 +131,85 @@ func (m Model) handleBrowseKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.UpdateScroll()
 		return m, nil
 	
-	// Actions (placeholders for now)
+	// Actions
 	case "enter", " ":
-		// TODO: Play selected station in Week 2
+		// Play/pause selected station
+		station := m.SelectedStation()
+		if station != nil {
+			currentStation := m.player.GetCurrentStation()
+			if currentStation != nil && currentStation.StationUUID == station.StationUUID {
+				// Stop if already playing this station
+				m.player.Stop()
+			} else {
+				// Play the selected station
+				if err := m.player.Play(station); err != nil {
+					m.errorMsg = fmt.Sprintf("Failed to play: %v", err)
+				} else {
+					m.errorMsg = ""
+				}
+			}
+		}
 		return m, nil
 	
 	case "s":
-		// TODO: Stop playback in Week 2
+		// Stop playback
+		m.player.Stop()
+		m.errorMsg = ""
+		return m, nil
+	
+	case "=", "+":
+		// Increase volume
+		currentVol := m.player.GetVolume()
+		if currentVol < 100 {
+			m.player.SetVolume(currentVol + 10)
+		}
+		return m, nil
+	
+	case "-", "_":
+		// Decrease volume
+		currentVol := m.player.GetVolume()
+		if currentVol > 0 {
+			m.player.SetVolume(currentVol - 10)
+		}
 		return m, nil
 	
 	case "a":
-		// TODO: Add to bookmarks in Week 2
+		// Add/remove bookmark
+		station := m.SelectedStation()
+		if station != nil && m.store != nil {
+			// Check if already bookmarked
+			isBookmarked, err := m.store.IsBookmarked(station.StationUUID)
+			if err != nil {
+				m.errorMsg = fmt.Sprintf("Error checking bookmark: %v", err)
+				return m, nil
+			}
+			
+			if isBookmarked {
+				// Remove bookmark
+				return m, func() tea.Msg {
+					if err := m.store.RemoveBookmark(station.StationUUID); err != nil {
+						return errMsg{err}
+					}
+					return bookmarkRemovedMsg{station.StationUUID}
+				}
+			} else {
+				// Add bookmark
+				return m, func() tea.Msg {
+					if err := m.store.AddBookmark(station); err != nil {
+						return errMsg{err}
+					}
+					return bookmarkAddedMsg{*station}
+				}
+			}
+		}
 		return m, nil
 	
 	// View switching
 	case "b":
 		m.view = ViewBookmarks
-		return m, nil
+		m.bookmarksLoading = true
+		// Load bookmarks when switching to bookmarks view
+		return m, m.loadBookmarks
 	
 	case "/":
 		m.view = ViewSearch

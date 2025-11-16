@@ -2,8 +2,12 @@
 package ui
 
 import (
+	"fmt"
+	
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/fulgidus/terminal-fm/pkg/services/player"
 	"github.com/fulgidus/terminal-fm/pkg/services/radiobrowser"
+	"github.com/fulgidus/terminal-fm/pkg/services/storage"
 )
 
 // ViewState represents the current screen being displayed.
@@ -24,6 +28,8 @@ const (
 type Model struct {
 	// Core dependencies
 	radioClient radiobrowser.Client
+	player      player.Player
+	store       *storage.Store
 	locale      string
 	
 	// UI state
@@ -42,25 +48,24 @@ type Model struct {
 	searchInput   string
 	searchActive  bool
 	
-	// Playback (for future)
-	currentStation *radiobrowser.Station
-	isPlaying     bool
-	
 	// Bookmarks
-	bookmarks     []radiobrowser.Station
+	bookmarks        []radiobrowser.Station
+	bookmarksLoading bool
 }
 
 // NewModel creates a new Model with initial state.
-func NewModel(radioClient radiobrowser.Client, locale string) Model {
+func NewModel(radioClient radiobrowser.Client, audioPlayer player.Player, store *storage.Store, locale string) Model {
 	return Model{
-		radioClient:  radioClient,
-		locale:       locale,
-		view:         ViewBrowse,
-		stations:     []radiobrowser.Station{},
-		cursor:       0,
+		radioClient: radioClient,
+		player:      audioPlayer,
+		store:       store,
+		locale:      locale,
+		view:        ViewBrowse,
+		stations:    []radiobrowser.Station{},
+		cursor:      0,
 		scrollOffset: 0,
-		loading:      true,
-		bookmarks:    []radiobrowser.Station{},
+		loading:     true,
+		bookmarks:   []radiobrowser.Station{},
 	}
 }
 
@@ -82,9 +87,34 @@ func (m Model) loadStations() tea.Msg {
 	return stationsLoadedMsg{stations}
 }
 
+// loadBookmarks is a command that loads bookmarks from storage.
+func (m Model) loadBookmarks() tea.Msg {
+	if m.store == nil {
+		return errMsg{fmt.Errorf("storage not available")}
+	}
+	
+	bookmarks, err := m.store.GetBookmarks()
+	if err != nil {
+		return errMsg{err}
+	}
+	return bookmarksLoadedMsg{bookmarks}
+}
+
 // Message types for async operations.
 type stationsLoadedMsg struct {
 	stations []radiobrowser.Station
+}
+
+type bookmarksLoadedMsg struct {
+	bookmarks []radiobrowser.Station
+}
+
+type bookmarkAddedMsg struct {
+	station radiobrowser.Station
+}
+
+type bookmarkRemovedMsg struct {
+	stationUUID string
 }
 
 type errMsg struct {

@@ -105,7 +105,22 @@ func (m Model) viewBrowse() string {
 	// Title
 	title := styleTitle.Render("♫ Terminal.FM")
 	b.WriteString(title)
-	b.WriteString("\n\n")
+	b.WriteString("\n")
+	
+	// Now playing bar (if playing)
+	if currentStation := m.player.GetCurrentStation(); currentStation != nil {
+		nowPlaying := fmt.Sprintf("♪ Now Playing: %s", currentStation.Name)
+		volume := fmt.Sprintf("Vol: %d%%", m.player.GetVolume())
+		playingBar := lipgloss.NewStyle().
+			Foreground(colorSuccess).
+			Bold(true).
+			Render(nowPlaying) + "  " +
+			styleStationDetail.Render(volume)
+		b.WriteString(playingBar)
+		b.WriteString("\n")
+	}
+	
+	b.WriteString("\n")
 	
 	// Header info
 	if m.loading {
@@ -185,6 +200,8 @@ func (m Model) renderFooter() string {
 		"↑/k up",
 		"↓/j down",
 		"enter play",
+		"s stop",
+		"+/- vol",
 		"b bookmarks",
 		"/ search",
 		"? help",
@@ -202,24 +219,38 @@ func (m Model) viewSearch() string {
 		m.renderFooter()
 }
 
-// viewBookmarks renders the bookmarks view (placeholder for now).
+// viewBookmarks renders the bookmarks view.
 func (m Model) viewBookmarks() string {
 	var b strings.Builder
 	
 	b.WriteString(styleTitle.Render("♫ Bookmarks"))
 	b.WriteString("\n\n")
 	
-	if len(m.bookmarks) == 0 {
+	if m.bookmarksLoading {
+		b.WriteString(styleLoading.Render("Loading bookmarks..."))
+		b.WriteString("\n")
+	} else if len(m.bookmarks) == 0 {
 		b.WriteString(styleHeader.Render("No bookmarks yet"))
+		b.WriteString("\n")
+		b.WriteString(styleStationDetail.Render("Press 'a' on any station to bookmark it"))
 		b.WriteString("\n")
 	} else {
 		b.WriteString(styleHeader.Render(fmt.Sprintf("%d bookmarked stations", len(m.bookmarks))))
 		b.WriteString("\n\n")
-		// TODO: Render bookmark list
+		
+		// Render bookmark list (similar to station list)
+		for i, station := range m.bookmarks {
+			if i >= m.VisibleStations() {
+				break
+			}
+			b.WriteString(m.renderStation(station, false))
+			b.WriteString("\n")
+		}
 	}
 	
 	b.WriteString("\n")
-	b.WriteString(styleFooter.Render("Press ESC to go back"))
+	shortcuts := "enter play • a remove • esc back"
+	b.WriteString(styleFooter.Width(m.width).Render(shortcuts))
 	
 	return b.String()
 }
@@ -237,8 +268,10 @@ func (m Model) viewHelp() string {
 	}{
 		{"↑ / k", "Move cursor up"},
 		{"↓ / j", "Move cursor down"},
-		{"Enter", "Play selected station"},
-		{"Space", "Pause/Resume playback"},
+		{"Enter / Space", "Play selected station"},
+		{"s", "Stop playback"},
+		{"+ / -", "Volume up/down"},
+		{"a", "Add/Remove bookmark"},
 		{"b", "Toggle bookmarks view"},
 		{"/", "Search stations"},
 		{"?", "Show this help"},

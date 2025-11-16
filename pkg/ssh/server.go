@@ -14,7 +14,9 @@ import (
 	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/charmbracelet/wish/logging"
 	"github.com/fulgidus/terminal-fm/internal/config"
+	"github.com/fulgidus/terminal-fm/pkg/services/player"
 	"github.com/fulgidus/terminal-fm/pkg/services/radiobrowser"
+	"github.com/fulgidus/terminal-fm/pkg/services/storage"
 	"github.com/fulgidus/terminal-fm/pkg/ui"
 	
 	tea "github.com/charmbracelet/bubbletea"
@@ -25,13 +27,15 @@ type Server struct {
 	config      *config.Config
 	sshServer   *ssh.Server
 	radioClient radiobrowser.Client
+	store       *storage.Store
 }
 
 // NewServer creates a new SSH server instance.
-func NewServer(cfg *config.Config, radioClient radiobrowser.Client) (*Server, error) {
+func NewServer(cfg *config.Config, radioClient radiobrowser.Client, store *storage.Store) (*Server, error) {
 	s := &Server{
 		config:      cfg,
 		radioClient: radioClient,
+		store:       store,
 	}
 	
 	// Create the Bubbletea handler that will be called for each SSH session
@@ -52,8 +56,11 @@ func NewServer(cfg *config.Config, radioClient radiobrowser.Client) (*Server, er
 			}
 		}
 		
+		// Create a new player for this session
+		audioPlayer := player.NewFFplayPlayer(cfg.Player.FFplayPath)
+		
 		// Create a new UI model for this session
-		model := ui.NewModel(radioClient, locale)
+		model := ui.NewModel(radioClient, audioPlayer, s.store, locale)
 		
 		return model, []tea.ProgramOption{
 			tea.WithAltScreen(),       // Use alternate screen buffer
