@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/fulgidus/terminal-fm/pkg/services/radiobrowser"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Store handles database operations.
@@ -20,15 +20,15 @@ func NewStore(dbPath string) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-	
+
 	store := &Store{db: db}
-	
+
 	// Initialize schema
 	if err := store.initSchema(); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("failed to initialize schema: %w", err)
 	}
-	
+
 	return store, nil
 }
 
@@ -65,7 +65,7 @@ func (s *Store) initSchema() error {
 	CREATE INDEX IF NOT EXISTS idx_bookmarks_name ON bookmarks(name);
 	CREATE INDEX IF NOT EXISTS idx_bookmarks_created ON bookmarks(created_at);
 	`
-	
+
 	_, err := s.db.Exec(schema)
 	return err
 }
@@ -75,7 +75,7 @@ func (s *Store) AddBookmark(station *radiobrowser.Station) error {
 	if station == nil {
 		return fmt.Errorf("station cannot be nil")
 	}
-	
+
 	query := `
 	INSERT INTO bookmarks (
 		station_uuid, name, url, url_resolved, homepage, tags,
@@ -84,7 +84,7 @@ func (s *Store) AddBookmark(station *radiobrowser.Station) error {
 	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(station_uuid) DO NOTHING
 	`
-	
+
 	_, err := s.db.Exec(query,
 		station.StationUUID,
 		station.Name,
@@ -102,28 +102,28 @@ func (s *Store) AddBookmark(station *radiobrowser.Station) error {
 		station.LastCheckOK,
 		station.ClickCount,
 	)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to add bookmark: %w", err)
 	}
-	
+
 	return nil
 }
 
 // RemoveBookmark removes a station from bookmarks.
 func (s *Store) RemoveBookmark(stationUUID string) error {
 	query := `DELETE FROM bookmarks WHERE station_uuid = ?`
-	
+
 	result, err := s.db.Exec(query, stationUUID)
 	if err != nil {
 		return fmt.Errorf("failed to remove bookmark: %w", err)
 	}
-	
+
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
 		return fmt.Errorf("bookmark not found")
 	}
-	
+
 	return nil
 }
 
@@ -137,15 +137,15 @@ func (s *Store) GetBookmarks() ([]radiobrowser.Station, error) {
 	FROM bookmarks
 	ORDER BY created_at DESC
 	`
-	
+
 	rows, err := s.db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query bookmarks: %w", err)
 	}
 	defer rows.Close()
-	
+
 	var bookmarks []radiobrowser.Station
-	
+
 	for rows.Next() {
 		var station radiobrowser.Station
 		err := rows.Scan(
@@ -168,40 +168,40 @@ func (s *Store) GetBookmarks() ([]radiobrowser.Station, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan bookmark: %w", err)
 		}
-		
+
 		bookmarks = append(bookmarks, station)
 	}
-	
+
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating bookmarks: %w", err)
 	}
-	
+
 	return bookmarks, nil
 }
 
 // IsBookmarked checks if a station is bookmarked.
 func (s *Store) IsBookmarked(stationUUID string) (bool, error) {
 	query := `SELECT COUNT(*) FROM bookmarks WHERE station_uuid = ?`
-	
+
 	var count int
 	err := s.db.QueryRow(query, stationUUID).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to check bookmark: %w", err)
 	}
-	
+
 	return count > 0, nil
 }
 
 // GetBookmarkCount returns the total number of bookmarks.
 func (s *Store) GetBookmarkCount() (int, error) {
 	query := `SELECT COUNT(*) FROM bookmarks`
-	
+
 	var count int
 	err := s.db.QueryRow(query).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count bookmarks: %w", err)
 	}
-	
+
 	return count, nil
 }
 

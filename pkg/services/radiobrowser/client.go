@@ -156,13 +156,13 @@ func NewAPIClient() (*APIClient, error) {
 		},
 		userAgent: "Terminal.FM/1.0",
 	}
-	
+
 	// Try to resolve the best server
 	if err := client.resolveBestServer(); err != nil {
 		// If resolution fails, continue with default server
 		fmt.Printf("Warning: Could not resolve best server, using default: %v\n", err)
 	}
-	
+
 	return client, nil
 }
 
@@ -175,24 +175,24 @@ func (c *APIClient) resolveBestServer() error {
 		return fmt.Errorf("failed to resolve servers: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("server resolution returned status %d", resp.StatusCode)
 	}
-	
+
 	var servers []struct {
 		Name string `json:"name"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&servers); err != nil {
 		return fmt.Errorf("failed to decode servers: %w", err)
 	}
-	
+
 	if len(servers) > 0 {
 		// Use the first server (they're already randomized by DNS)
 		c.baseURL = "https://" + servers[0].Name
 	}
-	
+
 	return nil
 }
 
@@ -200,10 +200,10 @@ func (c *APIClient) resolveBestServer() error {
 func (c *APIClient) Search(params SearchParams) ([]Station, error) {
 	// Build the search endpoint based on parameters
 	endpoint := "/json/stations/search"
-	
+
 	// Build query parameters
 	query := url.Values{}
-	
+
 	if params.Name != "" {
 		query.Set("name", params.Name)
 	}
@@ -228,39 +228,39 @@ func (c *APIClient) Search(params SearchParams) ([]Station, error) {
 	if params.Offset > 0 {
 		query.Set("offset", fmt.Sprintf("%d", params.Offset))
 	}
-	
+
 	// Construct full URL
 	fullURL := c.baseURL + endpoint
 	if len(query) > 0 {
 		fullURL += "?" + query.Encode()
 	}
-	
+
 	// Create request
 	req, err := http.NewRequest("GET", fullURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("User-Agent", c.userAgent)
-	
+
 	// Execute request
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
 	}
-	
+
 	// Decode response
 	var stations []Station
 	if err := json.NewDecoder(resp.Body).Decode(&stations); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	// Filter out stations with empty URLs or that failed last check
 	filtered := make([]Station, 0, len(stations))
 	for _, station := range stations {
@@ -270,7 +270,7 @@ func (c *APIClient) Search(params SearchParams) ([]Station, error) {
 			filtered = append(filtered, station)
 		}
 	}
-	
+
 	return filtered, nil
 }
 
@@ -278,32 +278,32 @@ func (c *APIClient) Search(params SearchParams) ([]Station, error) {
 func (c *APIClient) GetStationByUUID(uuid string) (*Station, error) {
 	endpoint := fmt.Sprintf("/json/stations/byuuid/%s", uuid)
 	fullURL := c.baseURL + endpoint
-	
+
 	req, err := http.NewRequest("GET", fullURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("User-Agent", c.userAgent)
-	
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned status %d", resp.StatusCode)
 	}
-	
+
 	var stations []Station
 	if err := json.NewDecoder(resp.Body).Decode(&stations); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	if len(stations) == 0 {
 		return nil, fmt.Errorf("station not found: %s", uuid)
 	}
-	
+
 	return &stations[0], nil
 }

@@ -1,0 +1,58 @@
+{
+  "app.title": "Terminal.FM",
+  "app.subtitle": "Internet Radio in Your Terminal",
+  
+  "view.browse": "Browse",
+  "view.bookmarks": "Bookmarks",
+  "view.search": "Search",
+  "view.help": "Help",
+  
+  "station.loading": "Loading stations...",
+  "station.found": "Found %d stations",
+  "station.playing": "♪ Now Playing: %s",
+  "station.stopped": "No station playing",
+  "station.volume": "Vol: %d%%",
+  "station.no_results": "No stations found",
+  
+  "bookmark.empty": "No bookmarks yet",
+  "bookmark.hint": "Press 'a' on any station to bookmark it",
+  "bookmark.count": "%d bookmarked stations",
+  "bookmark.added": "Added '%s' to bookmarks",
+  "bookmark.removed": "Removed from bookmarks",
+  "bookmark.loading": "Loading bookmarks...",
+  
+  "search.title": "Search Stations",
+  "search.prompt": "Enter search query:",
+  "search.placeholder": "Search stations by name, country, or tag...",
+  "search.hint": "Tip: Enter 2 letters for country code (e.g., 'IT', 'US'), or station name",
+  "search.searching": "Searching...",
+  "search.results": "Found %d stations (Tab to navigate results)",
+  
+  "error.play_failed": "Failed to play: %v",
+  "error.storage_unavailable": "Storage not available",
+  "error.bookmark_check": "Error checking bookmark: %v",
+  
+  "key.up": "↑/k up",
+  "key.down": "↓/j down",
+  "key.play": "enter play",
+  "key.stop": "s stop",
+  "key.volume": "+/- vol",
+  "key.bookmark": "a bookmark",
+  "key.bookmarks": "b bookmarks",
+  "key.search": "/ search",
+  "key.help": "? help",
+  "key.quit": "q quit",
+  
+  "help.title": "Keyboard Shortcuts",
+  "help.up": "Move cursor up",
+  "help.down": "Move cursor down",
+  "help.play": "Play selected station",
+  "help.stop": "Stop playback",
+  "help.volume_up": "Volume up/down",
+  "help.bookmark": "Add/Remove bookmark",
+  "help.bookmarks": "Toggle bookmarks view",
+  "help.search": "Search stations",
+  "help.help": "Show this help",
+  "help.quit": "Quit application",
+  "help.back": "Press ESC to go back"
+}

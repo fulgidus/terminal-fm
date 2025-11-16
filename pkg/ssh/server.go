@@ -18,7 +18,7 @@ import (
 	"github.com/fulgidus/terminal-fm/pkg/services/radiobrowser"
 	"github.com/fulgidus/terminal-fm/pkg/services/storage"
 	"github.com/fulgidus/terminal-fm/pkg/ui"
-	
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -37,12 +37,12 @@ func NewServer(cfg *config.Config, radioClient radiobrowser.Client, store *stora
 		radioClient: radioClient,
 		store:       store,
 	}
-	
+
 	// Create the Bubbletea handler that will be called for each SSH session
 	teaHandler := func(sess ssh.Session) (tea.Model, []tea.ProgramOption) {
 		// Get locale from environment or use default
 		locale := cfg.I18n.DefaultLocale
-		
+
 		// Check environment variables for locale
 		for _, env := range sess.Environ() {
 			// Environment comes as "KEY=value" format
@@ -55,19 +55,28 @@ func NewServer(cfg *config.Config, radioClient radiobrowser.Client, store *stora
 				break
 			}
 		}
-		
+
 		// Create a new player for this session
 		audioPlayer := player.NewFFplayPlayer(cfg.Player.FFplayPath)
-		
+
 		// Create a new UI model for this session
 		model := ui.NewModel(radioClient, audioPlayer, s.store, locale)
-		
+
+		// Register cleanup when session ends
+		sess.Context().Done()
+		go func() {
+			<-sess.Context().Done()
+			// Session ended - cleanup player
+			log.Println("SSH session ended, cleaning up player...")
+			model.Cleanup()
+		}()
+
 		return model, []tea.ProgramOption{
 			tea.WithAltScreen(),       // Use alternate screen buffer
 			tea.WithMouseCellMotion(), // Enable mouse support
 		}
 	}
-	
+
 	// Build the SSH server with middleware stack
 	srv, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)),
@@ -83,7 +92,7 @@ func NewServer(cfg *config.Config, radioClient radiobrowser.Client, store *stora
 	if err != nil {
 		return nil, fmt.Errorf("failed to create SSH server: %w", err)
 	}
-	
+
 	s.sshServer = srv
 	return s, nil
 }
@@ -92,20 +101,20 @@ func NewServer(cfg *config.Config, radioClient radiobrowser.Client, store *stora
 func (s *Server) Start() error {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	
+
 	log.Printf("Starting SSH server on %s:%d", s.config.Server.Host, s.config.Server.Port)
-	
+
 	// Start server in goroutine
 	go func() {
 		if err := s.sshServer.ListenAndServe(); err != nil {
 			log.Fatal(err)
 		}
 	}()
-	
+
 	// Wait for shutdown signal
 	<-done
 	log.Println("Shutting down SSH server...")
-	
+
 	return s.Shutdown()
 }
 
@@ -113,11 +122,11 @@ func (s *Server) Start() error {
 func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	
+
 	if err := s.sshServer.Shutdown(ctx); err != nil {
 		return fmt.Errorf("failed to shutdown SSH server: %w", err)
 	}
-	
+
 	log.Println("SSH server stopped")
 	return nil
 }

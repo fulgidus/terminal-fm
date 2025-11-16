@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"sync"
+	"syscall"
 
 	"github.com/fulgidus/terminal-fm/pkg/services/radiobrowser"
 )
@@ -41,12 +42,13 @@ type Player interface {
 
 // FFplayPlayer implements Player using ffplay.
 type FFplayPlayer struct {
-	mu              sync.RWMutex
-	cmd             *exec.Cmd
-	state           State
-	currentStation  *radiobrowser.Station
-	volume          int
-	ffplayPath      string
+	mu             sync.RWMutex
+	cmd            *exec.Cmd
+	state          State
+	currentStation *radiobrowser.Station
+	volume         int
+	ffplayPath     string
+	processActive  bool
 }
 
 // NewFFplayPlayer creates a new ffplay-based player.
@@ -54,7 +56,7 @@ func NewFFplayPlayer(ffplayPath string) *FFplayPlayer {
 	if ffplayPath == "" {
 		ffplayPath = "ffplay"
 	}
-	
+
 	return &FFplayPlayer{
 		state:      StateStopped,
 		volume:     70, // Default volume
@@ -66,16 +68,16 @@ func NewFFplayPlayer(ffplayPath string) *FFplayPlayer {
 func (p *FFplayPlayer) Play(station *radiobrowser.Station) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	// Stop any current playback
 	if err := p.stopLocked(); err != nil {
 		return fmt.Errorf("failed to stop current playback: %w", err)
 	}
-	
+
 	if station == nil || station.URLResolved == "" {
 		return fmt.Errorf("invalid station or URL")
 	}
-	
+
 	// Build ffplay command
 	// -nodisp: no video display
 	// -loglevel quiet: suppress output
@@ -88,28 +90,36 @@ func (p *FFplayPlayer) Play(station *radiobrowser.Station) error {
 		"-volume", fmt.Sprintf("%d", p.volume),
 		station.URLResolved,
 	}
-	
+
 	p.cmd = exec.Command(p.ffplayPath, args...)
-	
+
 	// Start the player
 	if err := p.cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start ffplay: %w", err)
 	}
-	
+
 	p.state = StatePlaying
 	p.currentStation = station
-	
+	p.processActive = true
+
 	// Monitor process in background
+	cmd := p.cmd // Capture cmd for goroutine
 	go func() {
-		p.cmd.Wait()
+		cmd.Wait()
+
+		// Cleanup after process exits
 		p.mu.Lock()
 		defer p.mu.Unlock()
-		if p.state == StatePlaying {
+
+		// Only clean up if this is still our active command
+		if p.cmd == cmd {
+			p.processActive = false
 			p.state = StateStopped
 			p.currentStation = nil
+			p.cmd = nil
 		}
 	}()
-	
+
 	return nil
 }
 
@@ -122,16 +132,23 @@ func (p *FFplayPlayer) Stop() error {
 
 // stopLocked stops playback without acquiring the lock (internal use).
 func (p *FFplayPlayer) stopLocked() error {
-	if p.cmd != nil && p.cmd.Process != nil {
-		if err := p.cmd.Process.Kill(); err != nil {
-			return fmt.Errorf("failed to kill process: %w", err)
-		}
-		p.cmd = nil
-	}
-	
+	// Mark as stopped first to prevent race conditions
+	wasActive := p.processActive
+	p.processActive = false
 	p.state = StateStopped
+
+	// Try to kill if we had an active process
+	if wasActive && p.cmd != nil && p.cmd.Process != nil {
+		// Send SIGTERM first (graceful)
+		if err := p.cmd.Process.Signal(syscall.SIGTERM); err != nil {
+			// If SIGTERM fails, try SIGKILL
+			p.cmd.Process.Signal(syscall.SIGKILL)
+		}
+		// Don't wait here - the goroutine will handle cleanup
+	}
+
 	p.currentStation = nil
-	
+
 	return nil
 }
 
@@ -155,19 +172,19 @@ func (p *FFplayPlayer) SetVolume(volume int) error {
 	if volume < 0 || volume > 100 {
 		return fmt.Errorf("volume must be between 0 and 100")
 	}
-	
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	p.volume = volume
-	
+
 	// If currently playing, restart with new volume
 	if p.state == StatePlaying && p.currentStation != nil {
 		station := p.currentStation
 		if err := p.stopLocked(); err != nil {
 			return err
 		}
-		
+
 		// Restart playback with new volume
 		// Note: We need to unlock before calling Play
 		p.mu.Unlock()
@@ -175,7 +192,7 @@ func (p *FFplayPlayer) SetVolume(volume int) error {
 		p.mu.Lock()
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -184,6 +201,25 @@ func (p *FFplayPlayer) GetVolume() int {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.volume
+}
+
+// Cleanup forcefully stops playback and cleans up resources.
+// Should be called when the session ends.
+func (p *FFplayPlayer) Cleanup() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.cmd != nil && p.cmd.Process != nil {
+		// Force kill the process
+		p.cmd.Process.Signal(syscall.SIGKILL)
+	}
+
+	p.cmd = nil
+	p.state = StateStopped
+	p.currentStation = nil
+	p.processActive = false
+
+	return nil
 }
 
 // MpvPlayer implements Player using mpv (for future implementation).

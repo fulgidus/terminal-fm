@@ -1,0 +1,58 @@
+{
+  "app.title": "Terminal.FM",
+  "app.subtitle": "Radio Internet nel Tuo Terminale",
+  
+  "view.browse": "Sfoglia",
+  "view.bookmarks": "Preferiti",
+  "view.search": "Cerca",
+  "view.help": "Aiuto",
+  
+  "station.loading": "Caricamento stazioni...",
+  "station.found": "Trovate %d stazioni",
+  "station.playing": "♪ In Riproduzione: %s",
+  "station.stopped": "Nessuna stazione in riproduzione",
+  "station.volume": "Vol: %d%%",
+  "station.no_results": "Nessuna stazione trovata",
+  
+  "bookmark.empty": "Nessun preferito",
+  "bookmark.hint": "Premi 'a' su una stazione per aggiungerla ai preferiti",
+  "bookmark.count": "%d stazioni nei preferiti",
+  "bookmark.added": "Aggiunta '%s' ai preferiti",
+  "bookmark.removed": "Rimossa dai preferiti",
+  "bookmark.loading": "Caricamento preferiti...",
+  
+  "search.title": "Cerca Stazioni",
+  "search.prompt": "Inserisci query di ricerca:",
+  "search.placeholder": "Cerca stazioni per nome, paese o tag...",
+  "search.hint": "Suggerimento: Inserisci 2 lettere per il codice paese (es. 'IT', 'US'), o il nome della stazione",
+  "search.searching": "Ricerca in corso...",
+  "search.results": "Trovate %d stazioni (Tab per navigare i risultati)",
+  
+  "error.play_failed": "Riproduzione fallita: %v",
+  "error.storage_unavailable": "Archivio non disponibile",
+  "error.bookmark_check": "Errore nel controllo preferiti: %v",
+  
+  "key.up": "↑/k su",
+  "key.down": "↓/j giù",
+  "key.play": "invio riproduci",
+  "key.stop": "s ferma",
+  "key.volume": "+/- vol",
+  "key.bookmark": "a preferito",
+  "key.bookmarks": "b preferiti",
+  "key.search": "/ cerca",
+  "key.help": "? aiuto",
+  "key.quit": "q esci",
+  
+  "help.title": "Scorciatoie da Tastiera",
+  "help.up": "Sposta cursore su",
+  "help.down": "Sposta cursore giù",
+  "help.play": "Riproduci stazione selezionata",
+  "help.stop": "Ferma riproduzione",
+  "help.volume_up": "Volume su/giù",
+  "help.bookmark": "Aggiungi/Rimuovi preferito",
+  "help.bookmarks": "Mostra preferiti",
+  "help.search": "Cerca stazioni",
+  "help.help": "Mostra questo aiuto",
+  "help.quit": "Esci dall'applicazione",
+  "help.back": "Premi ESC per tornare indietro"
+}

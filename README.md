@@ -28,14 +28,16 @@ That's it! No installation required. Just SSH and start listening.
 ## ✨ Features
 
 ### v1.0 (Current)
-- 🌍 **30,000+ Radio Stations** - Browse stations by genre, country, and language
-- 🎵 **Integrated Player** - Play/pause/stop with volume control
-- 📊 **Real-time Metadata** - See what's playing, bitrate, and codec info
-- ⭐ **Bookmarks System** - Save your favorite stations
-- 🔍 **Search** - Find stations by name, genre, or tags
-- 🌐 **Multilingual** - Interface in English and Italian (more coming soon)
-- 📱 **Responsive UI** - Adapts to any terminal size
-- 🔐 **Anonymous Access** - No registration required
+- 🌍 **30,000+ Radio Stations** - Access to Radio Browser community database
+- 🎵 **Audio Playback** - FFplay-based player with volume control
+- 📊 **Station Metadata** - Name, country, bitrate, codec, votes
+- ⭐ **Bookmarks System** - SQLite-backed persistent favorites
+- 🔍 **Interactive Search** - Search by name or country code with live results
+- 🌐 **Multilingual** - Full i18n support (English and Italian)
+- 📱 **Responsive TUI** - Adapts to any terminal size with styled components
+- 🔐 **Anonymous SSH** - No authentication required
+- 💾 **Local Storage** - Bookmarks saved to `~/.terminal-fm/terminal-fm.db`
+- 🎨 **Beautiful UI** - Styled with Lipgloss (cyan/pink/purple theme)
 
 ### 🚧 Roadmap (v1.5+)
 - 📈 Real-time spectrum analyzer (exploring WebRTC/client-side solutions)
@@ -47,16 +49,38 @@ That's it! No installation required. Just SSH and start listening.
 
 ## 🎮 Usage
 
-### Navigation
+### Keyboard Controls
+
+**Navigation**
 ```
 ↑/↓ or k/j     Navigate stations
-Enter          Play selected station
-Space          Pause/Resume
-q              Quit
-/              Search
-b              Bookmarks
-?              Help
+PgUp/PgDn      Fast scroll
+Home/End       Jump to first/last
 ```
+
+**Playback**
+```
+Enter/Space    Play selected station
+s              Stop playback
++/-            Volume up/down (10% increments)
+```
+
+**Features**
+```
+a              Add/Remove bookmark
+b              Toggle bookmarks view
+/              Search stations
+?              Show help
+q or Ctrl+C    Quit
+```
+
+### Search
+Press `/` to open search, then:
+- Enter station name to search
+- Enter 2-letter country code (e.g., `IT`, `US`, `UK`)
+- Press `Tab` to switch between input and results
+- Press `Enter` to execute search or play selected result
+- Press `ESC` to return to browse view
 
 ### Filters
 - Genre (Jazz, Rock, Electronic, Classical, etc.)
@@ -99,8 +123,26 @@ Want to run your own instance? See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for 
 ```bash
 git clone https://github.com/fulgidus/terminal-fm.git
 cd terminal-fm
+go mod download
 go build -o terminal-fm ./cmd/server
+
+# Development mode (mock data, port 2222)
+./terminal-fm --dev --port 2222
+
+# Production mode (real API, requires ffplay)
 sudo ./terminal-fm --port 22 --host 0.0.0.0
+```
+
+**Note**: Production mode requires `ffplay` (part of FFmpeg) to be installed:
+```bash
+# Ubuntu/Debian
+sudo apt install ffmpeg
+
+# macOS
+brew install ffmpeg
+
+# Arch Linux
+sudo pacman -S ffmpeg
 ```
 
 ## 🤝 Contributing
@@ -119,10 +161,23 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting PRs.
 git clone https://github.com/fulgidus/terminal-fm.git
 cd terminal-fm
 go mod download
-go run ./cmd/server --dev
+
+# Run in development mode (uses mock data, no real API calls)
+go run ./cmd/server --dev --port 2222
+
+# In another terminal, connect
+ssh localhost -p 2222
 ```
 
 See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed development guide.
+
+### Available Flags
+```bash
+--dev          Enable development mode (mock API client)
+--port         SSH port to listen on (default: 22)
+--host         Host address to bind to (default: 0.0.0.0)
+--version      Show version information
+```
 
 ## 📖 Documentation
 
