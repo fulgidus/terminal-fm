@@ -20,7 +20,7 @@
 ### Option 1: Install Client (Recommended - Enables Audio)
 
 ```bash
-curl -fsSL https://terminal-radio.com/install | bash
+curl -fsSL https://raw.githubusercontent.com/fulgidus/terminal-fm/refs/heads/main/scripts/install.sh | bash
 ```
 
 Then run:
