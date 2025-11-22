@@ -7,8 +7,6 @@ toolchain go1.24.4
 require (
 	github.com/charmbracelet/bubbletea v1.3.4
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/charmbracelet/ssh v0.0.0-20240130181001-ea1d614a1855
-	github.com/charmbracelet/wish v1.3.0
 )
 
 require (

@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# Terminal-Radio Client Installer
-# Installs the radio wrapper command
+# Terminal.FM Installer
+# Installs the terminal radio streaming client
 
 echo "╔════════════════════════════════════════════════╗"
-echo "║     Terminal-Radio Client Installer           ║"
+echo "║          Terminal.FM Installer                ║"
 echo "╚════════════════════════════════════════════════╝"
 echo ""
 
@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 # Configuration
 GITHUB_REPO="fulgidus/terminal-fm"
 INSTALL_DIR="$HOME/.local/bin"
-BINARY_NAME="radio"
+BINARY_NAME="terminal-fm"
 
 # Detect OS and architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -47,14 +47,6 @@ echo ""
 # Check for required dependencies
 echo -e "${BLUE}Checking dependencies...${NC}"
 
-# Check if ssh is available
-if ! command -v ssh &> /dev/null; then
-    echo -e "${RED}✗ ssh not found${NC}"
-    echo "  Please install OpenSSH client"
-    exit 1
-fi
-echo -e "${GREEN}✓ ssh${NC}"
-
 # Check for audio player
 HAS_PLAYER=false
 if command -v mpv &> /dev/null; then
@@ -71,7 +63,7 @@ fi
 if [ "$HAS_PLAYER" = false ]; then
     echo -e "${YELLOW}⚠  No audio player found${NC}"
     echo ""
-    echo "Terminal-Radio requires one of these players:"
+    echo "Terminal.FM requires one of these players:"
     echo "  • mpv (recommended): https://mpv.io/"
     echo "  • ffplay (part of ffmpeg)"
     echo "  • vlc"
@@ -95,7 +87,7 @@ echo ""
 mkdir -p "$INSTALL_DIR"
 
 # Download or build client
-echo -e "${BLUE}Installing terminal-radio client...${NC}"
+echo -e "${BLUE}Installing Terminal.FM...${NC}"
 
 # Check if Go is available for local build
 if command -v go &> /dev/null; then
@@ -111,9 +103,9 @@ if command -v go &> /dev/null; then
         exit 1
     }
     
-    # Build client
-    go build -o "$INSTALL_DIR/$BINARY_NAME" ./cmd/client || {
-        echo -e "${RED}Failed to build client${NC}"
+    # Build application
+    go build -o "$INSTALL_DIR/$BINARY_NAME" ./cmd/terminal-fm || {
+        echo -e "${RED}Failed to build application${NC}"
         exit 1
     }
     
@@ -129,12 +121,12 @@ else
     # For now, we'll just download the source and suggest installing Go
     echo -e "${RED}Pre-built binaries not yet available.${NC}"
     echo ""
-    echo "Please install Go to build the client:"
+    echo "Please install Go to build Terminal.FM:"
     echo "  https://go.dev/doc/install"
     echo ""
     echo "Or install directly with:"
-    echo "  go install github.com/$GITHUB_REPO/cmd/client@latest"
-    echo "  mv \$(go env GOPATH)/bin/client ~/.local/bin/radio"
+    echo "  go install github.com/$GITHUB_REPO/cmd/terminal-fm@latest"
+    echo "  mv \$(go env GOPATH)/bin/terminal-fm ~/.local/bin/terminal-fm"
     exit 1
 fi
 
@@ -159,12 +151,8 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║         Installation Complete! 🎉             ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════╝${NC}"
 echo ""
-echo "Run terminal-radio with:"
-echo -e "  ${BLUE}radio${NC}"
+echo "Run Terminal.FM with:"
+echo -e "  ${BLUE}terminal-fm${NC}"
 echo ""
-echo "Or connect directly:"
-echo -e "  ${BLUE}ssh terminal-radio.com${NC}"
-echo ""
-echo "Note: Using 'radio' command enables local audio playback"
-echo "      Direct SSH connection will not play audio"
+echo "Enjoy streaming radio stations in your terminal!"
 echo ""

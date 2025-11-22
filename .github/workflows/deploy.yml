@@ -45,60 +45,12 @@ jobs:
 
       - name: Build binary
         run: |
-          go build -ldflags="-s -w" -o terminal-radio ./cmd/server
-          ls -lh terminal-radio
+          go build -ldflags="-s -w" -o terminal-fm ./cmd/terminal-fm
+          ls -lh terminal-fm
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: terminal-radio-binary
-          path: terminal-radio
-          retention-days: 1
-
-  deploy:
-    name: Deploy to VPS
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: production
-      url: ssh://terminal-radio.com
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 51.91.97.241
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 2222
-          script: |
-            echo "🚀 Triggering deployment..."
-            /usr/local/bin/terminal-radio-deploy.sh
-
-      - name: Verify deployment
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 51.91.97.241
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 2222
-          script: |
-            echo "🔍 Checking service status..."
-            sudo systemctl status terminal-radio --no-pager || true
-            echo ""
-            echo "📊 Recent logs:"
-            sudo journalctl -u terminal-radio -n 20 --no-pager
-
-      - name: Notify deployment success
-        if: success()
-        run: |
-          echo "✅ Deployment successful!"
-
-      - name: Notify deployment failure
-        if: failure()
-        run: |
-          echo "❌ Deployment failed!"
-          echo "Check the logs above for details."
-          exit 1
+          name: terminal-fm-binary
+          path: terminal-fm
+          retention-days: 30

@@ -88,7 +88,7 @@ jobs:
         go-version: '1.21'
     
     - name: Build binary
-      run: go build -v -o terminal-fm ./cmd/server
+      run: go build -v -o terminal-fm ./cmd/terminal-fm
     
     - name: Test binary
       run: ./terminal-fm --version || echo "Version flag not yet implemented"

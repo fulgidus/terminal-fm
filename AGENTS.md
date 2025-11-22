@@ -2,8 +2,8 @@
 
 ## Build/Test Commands
 ```bash
-go build -o terminal-fm ./cmd/server              # Build binary
-go run ./cmd/server --dev --port 2222             # Run dev server
+go build -o terminal-fm ./cmd/terminal-fm         # Build binary
+go run ./cmd/terminal-fm --dev                    # Run in dev mode
 go test ./...                                     # Run all tests
 go test -v -run TestPlayerVolume ./pkg/services/player  # Run single test
 go test -race -coverprofile=coverage.out ./...    # Test with race detector + coverage
@@ -21,4 +21,4 @@ gofmt -s -w . && goimports -w .                   # Format code
 - **Types**: Prefer interfaces for flexibility, use pointers for large structs
 
 ## Project Structure
-`cmd/server/` → entry point | `pkg/` → reusable packages (ssh, ui, services, storage, i18n) | `internal/` → private code | `docs/` → documentation
+`cmd/terminal-fm/` → entry point | `pkg/` → reusable packages (ui, services, storage, i18n) | `internal/` → private code | `docs/` → documentation

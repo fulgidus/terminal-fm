@@ -9,20 +9,10 @@ import (
 
 // Config holds all application configuration.
 type Config struct {
-	Server  ServerConfig
 	Player  PlayerConfig
 	Storage StorageConfig
 	I18n    I18nConfig
 	DevMode bool
-}
-
-// ServerConfig contains SSH server settings.
-type ServerConfig struct {
-	Host        string
-	Port        int
-	KeyPath     string
-	MaxTimeout  int // seconds
-	IdleTimeout int // seconds
 }
 
 // PlayerConfig contains audio player settings.
@@ -52,13 +42,6 @@ func New() *Config {
 	dataDir := filepath.Join(homeDir, ".terminal-fm")
 
 	return &Config{
-		Server: ServerConfig{
-			Host:        "0.0.0.0",
-			Port:        22,
-			KeyPath:     filepath.Join(dataDir, "ssh_host_key"),
-			MaxTimeout:  3600, // 1 hour
-			IdleTimeout: 1800, // 30 minutes
-		},
 		Player: PlayerConfig{
 			DefaultPlayer: "ffplay",
 			FFplayPath:    "ffplay",
@@ -80,10 +63,6 @@ func New() *Config {
 
 // Validate checks if the configuration is valid.
 func (c *Config) Validate() error {
-	if c.Server.Port < 1 || c.Server.Port > 65535 {
-		return fmt.Errorf("invalid server port: %d", c.Server.Port)
-	}
-
 	if c.Player.DefaultPlayer != "ffplay" && c.Player.DefaultPlayer != "mpv" {
 		return fmt.Errorf("invalid player: %s (must be 'ffplay' or 'mpv')", c.Player.DefaultPlayer)
 	}
